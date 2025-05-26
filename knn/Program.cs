@@ -1,4 +1,10 @@
-﻿class Program
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+
+
+class Program
 {
     static Random random = new Random();
     public static void Main(string[] args)
@@ -22,6 +28,47 @@
         Metryka n = Manhatan;
         double wynik1 = n(A, B);
         Console.WriteLine(wynik1);
+
+        string plik = @"C:\Users\Lenovo\Desktop\WS\zadanie 2\knn\dane.txt"; 
+        var dane = new List<double[]>();
+
+        foreach (var line in File.ReadLines(plik))
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            var parts = line.Split(new[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var row = new double[parts.Length];
+
+            for (int i = 0; i < parts.Length; i++)
+                row[i] = double.Parse(parts[i], CultureInfo.InvariantCulture);
+
+            dane.Add(row);
+        }
+       
+
+        Console.WriteLine("Pierwszy wiersz:");
+        Console.WriteLine(string.Join(", ", dane[0]));
+
+        Console.WriteLine($"\nWczytano {dane.Count} wierszy.");
+
+       
+
+        List<double[]> probki = new List<double[]>();
+
+        foreach(var wiersz in dane)
+        {
+            probki.Add(new double[] { wiersz[0], wiersz[1], wiersz[2], wiersz[3] });
+        }
+        for (int i = 0; i < probki.Count; i++)
+        {
+            Console.WriteLine($"Numer próbki {i+1}:");
+            for (int j = 0; j < probki[i].Length; j++)
+            {
+                Console.Write($"{probki[i][j]} ");
+            }
+            Console.WriteLine();
+        }
+        
     }
 
 
