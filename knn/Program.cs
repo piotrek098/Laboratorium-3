@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-
+using System.Reflection.Metadata.Ecma335;
 
 class Program
 {
@@ -47,13 +47,56 @@ class Program
             ostatniaKolumna.Add(new double[] { wiersz[4] });
         }
         double[]nowy= new double[] { 1.2, 1.5, 5, 2.3 };
-        int k = 3;
-        Metryka m = Euklidesowa;
-        var wynik = Indeksynajmniejszych(probki, nowy, m, k);
+        int k = 25;
+        Metryka e = Euklidesowa;
+        Metryka m = Manhatan;
+        Metryka c = Czybyszew;
+        Metryka z = Zalgorytmem;
+        var wynik = Indeksynajmniejszych(probki, nowy, z, k);
 
         double wynikKlasyfikacji = Klasyfikuj(ostatniaKolumna, wynik);
         Console.WriteLine($"Przewidziana klasa: {wynikKlasyfikacji}");
 
+
+
+/*
+        double[] wektor = { 1.0, 2.0, 3.0, 4.0 };
+        double[] znormalizowany = Normalizacja(wektor);
+
+        Console.WriteLine("Znormalizowany wektor:");
+        for (int i = 0; i < znormalizowany.Length; i++)
+        {
+            Console.WriteLine(znormalizowany[i]);
+        }
+*/
+        List<double[]> Znormalizowane = new List<double[]>();
+
+        foreach (var wiersz in probki)
+        {
+            Znormalizowane.Add(Normalizacja(wiersz));
+        }
+        double[] wynikZadania = new double[Znormalizowane.Count];
+        for(int i = 0; i<Znormalizowane.Count; i++)
+        {
+            var zadanie = Indeksynajmniejszych(Znormalizowane, Znormalizowane[i], m, k);
+            wynikZadania[i] = Klasyfikuj(ostatniaKolumna, zadanie);
+
+        }
+        for (int i = 0; i < wynikZadania.Length; i++)
+        {
+            Console.WriteLine($"Wynik klasyfikacji  {i + 1}: {wynikZadania[i]} Oczekiwana klasa: "+ string.Join(",", ostatniaKolumna[i]));
+        }
+        double wynikprzedprocentami = 0;
+        for(int i = 0; i<Znormalizowane.Count ; i++)
+        {
+            if (wynikZadania[i] == ostatniaKolumna[i][0])
+            {
+                wynikprzedprocentami++;
+            }
+        }
+
+        double wynikWProcentach = wynikprzedprocentami/ostatniaKolumna.Count * 100;
+        Console.WriteLine($"Wynik w procentach: {wynikWProcentach}");
     }
 
 
@@ -115,10 +158,10 @@ class Program
         }
         Array.Sort(odleglosci, indeksy);
 
-        for (int i = 0; i < ile; i++)
-        {
-            Console.WriteLine($"Indeks: {indeksy[i]}, Odległość: {odleglosci[i]}");
-        }
+       // for (int i = 0; i < ile; i++)
+       // {
+      //      Console.WriteLine($"Indeks: {indeksy[i]}, Odległość: {odleglosci[i]}");
+       // }
         int[] najblizszeIndeksy = new int[ile];
         for (int i = 0; i < ile; i++)
         {
@@ -161,6 +204,28 @@ class Program
 
         return najczestsza;
     }
+
+
+    static double[] Normalizacja(double[] A)
+    {
+        double min = A.Min();
+        double max = A.Max();
+        double[] wynik = new double[A.Length];
+        if (max == min)
+        {
+            Console.WriteLine("Wszystkie wartości są takie same — nie można normalizować.");
+            return A.Select(x => 0.0).ToArray(); 
+        }
+
+
+        for (int i = 0; i < A.Length; i++)
+        {
+            wynik[i] = (A[i] - min) / (max - min);
+        }
+
+        return wynik;
+    }
+    
 
 
 }
