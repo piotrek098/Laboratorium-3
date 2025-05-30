@@ -9,7 +9,7 @@ class Program
     public static void Main(string[] args)
     {
         
-        string plik = @"C:\Users\Lenovo\Desktop\WS\zadanie 2\knn\dane.txt";
+        string plik = "dane.txt";
         var dane = new List<double[]>();
 
         foreach (var line in File.ReadLines(plik))
@@ -47,12 +47,12 @@ class Program
             ostatniaKolumna.Add(new double[] { wiersz[4] });
         }
         double[]nowy= new double[] { 1.2, 1.5, 5, 2.3 };
-        int k = 25;
+        int k = 60;
         Metryka e = Euklidesowa;
         Metryka m = Manhatan;
         Metryka c = Czybyszew;
         Metryka z = Zalgorytmem;
-        var wynik = Indeksynajmniejszych(probki, nowy, z, k);
+        var wynik = Indeksynajmniejszych(dane, nowy, m, k);
 
         double wynikKlasyfikacji = Klasyfikuj(ostatniaKolumna, wynik);
         Console.WriteLine($"Przewidziana klasa: {wynikKlasyfikacji}");
