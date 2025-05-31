@@ -9,7 +9,7 @@ class Program
     public static void Main(string[] args)
     {
         
-        string plik = "dane.txt";
+        string plik = @"../../../../dane.txt";
         var dane = new List<double[]>();
 
         foreach (var line in File.ReadLines(plik))
