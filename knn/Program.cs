@@ -46,42 +46,22 @@ class Program
         {
             ostatniaKolumna.Add(new double[] { wiersz[4] });
         }
-        double[]nowy= new double[] { 1.2, 1.5, 5, 2.3 };
-        int k = 60;
+        int k = 3;
         Metryka e = Euklidesowa;
         Metryka m = Manhatan;
         Metryka c = Czybyszew;
-        Metryka z = Zalgorytmem;
-        var wynik = Indeksynajmniejszych(dane, nowy, m, k);
+        Metryka z = Zlogarytmem;
+      
+        List<double[]> Znormalizowane = NormalizujKolumnowo(probki);
 
-        double wynikKlasyfikacji = Klasyfikuj(ostatniaKolumna, wynik);
-        Console.WriteLine($"Przewidziana klasa: {wynikKlasyfikacji}");
-
-
-
-/*
-        double[] wektor = { 1.0, 2.0, 3.0, 4.0 };
-        double[] znormalizowany = Normalizacja(wektor);
-
-        Console.WriteLine("Znormalizowany wektor:");
-        for (int i = 0; i < znormalizowany.Length; i++)
-        {
-            Console.WriteLine(znormalizowany[i]);
-        }
-*/
-        List<double[]> Znormalizowane = new List<double[]>();
-
-        foreach (var wiersz in probki)
-        {
-            Znormalizowane.Add(Normalizacja(wiersz));
-        }
         double[] wynikZadania = new double[Znormalizowane.Count];
-        for(int i = 0; i<Znormalizowane.Count; i++)
+        for (int i = 0; i < Znormalizowane.Count; i++)
         {
-            var zadanie = Indeksynajmniejszych(Znormalizowane, Znormalizowane[i], m, k);
-            wynikZadania[i] = Klasyfikuj(ostatniaKolumna, zadanie);
-
+            var zadanie = Indeksynajmniejszych(Znormalizowane, Znormalizowane[i], z, k + 1);
+            var filtr = zadanie.Where(index => index != i).Take(k).ToArray();
+            wynikZadania[i] = Klasyfikuj(ostatniaKolumna, filtr);
         }
+
         for (int i = 0; i < wynikZadania.Length; i++)
         {
             Console.WriteLine($"Wynik klasyfikacji  {i + 1}: {wynikZadania[i]} Oczekiwana klasa: "+ string.Join(",", ostatniaKolumna[i]));
@@ -89,7 +69,8 @@ class Program
         double wynikprzedprocentami = 0;
         for(int i = 0; i<Znormalizowane.Count ; i++)
         {
-            if (wynikZadania[i] == ostatniaKolumna[i][0])
+            if (wynikZadania[i] != 0 && wynikZadania[i] == ostatniaKolumna[i][0])
+
             {
                 wynikprzedprocentami++;
             }
@@ -103,7 +84,7 @@ class Program
     static double Euklidesowa(double[] A, double[] B)
     {
         double wynik = 0;
-        for (int i = 0; i < A.Length - 1; i++)
+        for (int i = 0; i < A.Length; i++)
         {
             wynik += (A[i] - B[i]) * (A[i] - B[i]);
         }
@@ -113,7 +94,7 @@ class Program
     static double Manhatan(double[] A, double[] B)
     {
         double wynik = 0;
-        for (int i = 0; i < A.Length - 1; i++)
+        for (int i = 0; i < A.Length; i++)
         {
             wynik += Math.Abs((A[i] - B[i]));
         }
@@ -123,24 +104,26 @@ class Program
     static double Czybyszew(double[]A, double[]B)
     {
         double[] wynik = new double[A.Length];
-        for(int i=0; i < A.Length -1; i++)
+        for(int i=0; i < A.Length; i++)
         {
             wynik[i] = Math.Abs(A[i] - B[i]);
         }
         double Max=wynik.Max();
         return Max;
     }
-    static double Zalgorytmem(double[] A, double[] B)
+
+    
+    static double Zlogarytmem(double[] A, double[] B)
     {
         double wynik = 0;
-        for (int i = 0; i < A.Length - 1; i++)
+        for (int i = 0; i < A.Length ; i++)
         {
-            wynik += Math.Abs(Math.Log(A[i]) - Math.Log(B[i]));
+            wynik += Math.Abs(Math.Log10(A[i]) - Math.Log10(B[i]));
         }
         
         return wynik;
     }
-
+    
     delegate double Metryka(double[] A, double[] B);
 
 
@@ -158,10 +141,7 @@ class Program
         }
         Array.Sort(odleglosci, indeksy);
 
-       // for (int i = 0; i < ile; i++)
-       // {
-      //      Console.WriteLine($"Indeks: {indeksy[i]}, Odległość: {odleglosci[i]}");
-       // }
+       
         int[] najblizszeIndeksy = new int[ile];
         for (int i = 0; i < ile; i++)
         {
@@ -171,61 +151,78 @@ class Program
     }
     static double Klasyfikuj(List<double[]> klasy, int[] indeksyNajblizszych)
     {
-        double[] klasyNajblizszych = new double[indeksyNajblizszych.Length];
+        Dictionary<int, int> licznik = new Dictionary<int, int>();
 
-        for (int i = 0; i < indeksyNajblizszych.Length; i++)
+        foreach (int indeks in indeksyNajblizszych)
         {
-            int indeks = indeksyNajblizszych[i];
-            klasyNajblizszych[i] = klasy[indeks][0]; 
+            int klasa = (int)klasy[indeks][0];
+            if (!licznik.ContainsKey(klasa))
+                licznik[klasa] = 1;
+            else
+                licznik[klasa]++;
         }
 
-        double najczestsza = klasyNajblizszych[0];
-        int maxLicznik = 1;
+        int max = licznik.Values.Max();
+        var najczestsze = licznik.Where(kvp => kvp.Value == max).Select(kvp => kvp.Key).ToList();
 
-        for (int i = 0; i < klasyNajblizszych.Length; i++)
+        if (najczestsze.Count > 1)
         {
-            double aktualna = klasyNajblizszych[i];
-            int licznik = 0;
-
-            for (int j = 0; j < klasyNajblizszych.Length; j++)
-            {
-                if (klasyNajblizszych[j] == aktualna)
-                {
-                    licznik++;
-                }
-            }
-
-            if (licznik > maxLicznik)
-            {
-                maxLicznik = licznik;
-                najczestsza = aktualna;
-            }
+            return 0; 
         }
 
-        return najczestsza;
+        return najczestsze[0];
     }
 
 
-    static double[] Normalizacja(double[] A)
+    static List<double[]> NormalizujKolumnowo(List<double[]> dane)
     {
-        double min = A.Min();
-        double max = A.Max();
-        double[] wynik = new double[A.Length];
-        if (max == min)
+        int kolumny = dane[0].Length;
+        int wiersze = dane.Count;
+
+        double[] min = new double[kolumny];
+        double[] max = new double[kolumny];
+
+        for (int i = 0; i < kolumny; i++)
         {
-            Console.WriteLine("Wszystkie wartości są takie same — nie można normalizować.");
-            return A.Select(x => 0.0).ToArray(); 
+            min[i] = double.MaxValue;
+            max[i] = double.MinValue;
         }
 
-
-        for (int i = 0; i < A.Length; i++)
+        foreach (var wiersz in dane)
         {
-            wynik[i] = (A[i] - min) / (max - min);
+            for (int i = 0; i < kolumny; i++)
+            {
+                if (wiersz[i] < min[i]) min[i] = wiersz[i];
+                if (wiersz[i] > max[i]) max[i] = wiersz[i];
+            }
+        }
+
+        
+        List<double[]> wynik = new List<double[]>();
+        foreach (var wiersz in dane)
+        {
+            double[] nowyWiersz = new double[kolumny];
+            for (int i = 0; i < kolumny; i++)
+            {
+                if (max[i] == min[i])
+                {
+                    nowyWiersz[i] = 0.0; 
+                }
+                else
+                {
+                    nowyWiersz[i] = (wiersz[i] - min[i]) / (max[i] - min[i]);
+                }
+            }
+            wynik.Add(nowyWiersz);
         }
 
         return wynik;
     }
-    
+
+
 
 
 }
+
+
+
